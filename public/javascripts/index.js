@@ -82,6 +82,7 @@ $('#ue_save').on('click', function(){
       $('#user_edit_box').removeClass('show');
       setTimeout(function(){
         $('#user_info').show();
+        !_move && $('#user_info_btn').trigger('click');
       },1000)
 
       $("#user_info .J_username").html(data.user.loginname)
