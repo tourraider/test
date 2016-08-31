@@ -8,6 +8,7 @@
 
     <% if(current_user) {%>
       <div id="user_info">
+        <img src="<%= current_user.head%>">
         <p>用户名：<span class="J_username"><%= current_user.loginname%></span></p>
         <p>邮箱：<%= current_user.email%></p>
         <button id="user_info_btn">居中</button>

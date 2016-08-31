@@ -45,11 +45,11 @@ exports.login = function(req, res, next){
   })
 
   if(userId === '' || password === ''){
-    ep.emit('props_err', '用户名密码不能为空');
+    return ep.emit('props_err', '用户名密码不能为空');
   }
 
   if(!tools.validateId){
-    ep.emit('props_err', '用户名不合法');
+    return ep.emit('props_err', '用户名不合法');
   }
 
   var getUser;
@@ -62,7 +62,7 @@ exports.login = function(req, res, next){
 
   getUser(userId, function(err, user){
     if(!user){
-      res.send({rt:0, err: '用户名或密码错误'})
+      return res.send({rt:0, err: '用户名或密码错误'})
     }
 
     if(!user.active){
