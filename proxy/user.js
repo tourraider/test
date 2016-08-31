@@ -4,15 +4,17 @@ var User = model.User;
 exports.addUser = function(loginname, password, email, active, cb){
   var user = new User();
 
-  console.log(loginname)
-
   user.loginname = loginname;
   user.password = password;
   user.email = email;
   user.active = active || false;
 
-  user.save(cb)
+  user.save(cb);
 
+}
+
+exports.getUserById = function(id, cb){
+  User.findOne({_id: id}, cb);
 }
 
 exports.getUserByQuery = function(query, opt, cb){

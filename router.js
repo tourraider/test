@@ -9,7 +9,11 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/test1', function(req, res, next) {
-  res.render('test1', { title: 'test1' });
+  console.log(req.session)
+
+  res.render('test1', {
+    title: 'test1',
+  });
 });
 
 /**************** apis ***********************/
@@ -21,6 +25,7 @@ router.post('/testsendMail', testApi.sendmail);
 /* user */
 router.post('/reg', userApi.reg );
 router.post('/login', userApi.login );
+router.get('/active_account', userApi.activeAccount)
 
 
 /* index */
