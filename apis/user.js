@@ -7,6 +7,32 @@ var authMiddleWare = require('../middlewares/auth');
 var tools = require('../common/tools');
 var utility = require('utility');
 
+exports.editUser = function(req, res, next){
+  var loginname = validator.trim(req.body.loginname).toLowerCase();
+
+  var user = req.session.user;
+  User.getUserById(user._id, function(err, user){
+    if(err){
+      return next(err);
+    }
+
+    if(!user){
+      return res.send({rt:0, err: '用户不存在'});
+    }
+
+    user.loginname = loginname;
+    user.save(function(err){
+      if(err){
+        return next(err);
+      }
+
+      req.session.user = res.locals.current_user = user;
+      res.send({rt:1, user: user});
+    })
+  })
+
+}
+
 exports.login = function(req, res, next){
   var userId = validator.trim(req.body.userId);
   var password = validator.trim(req.body.password);
@@ -53,6 +79,7 @@ exports.login = function(req, res, next){
       }
     }))
   })
+
 }
 
 exports.reg = function(req, res, next){
@@ -102,7 +129,6 @@ exports.reg = function(req, res, next){
         }
 
         mail.sendActiveMail(email, utility.md5(email + hashpwd + config.session_secret), loginname);
-
         res.send({rt:1, msg:'注册成功'});
       })
     }))
@@ -123,23 +149,17 @@ exports.activeAccount = function(req, res, next){
       return res.render('notify', {error: '用户不存在，激活失败'});
     }
 
-    console.log(key, utility.md5(user.email + user.password + config.session_secret))
-
     if( utility.md5(user.email + user.password + config.session_secret) !== key){
       return res.render('notify', {error: '激活码错误，激活失败'});
     }
 
     user.active = true;
-
     user.save(function(err){
       if(err){
         return next(err);
       }
-
       return res.render('notify', {success: '激活成功，请重新登录'});
-
     });
-
   })
 
 }

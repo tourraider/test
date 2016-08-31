@@ -6,9 +6,9 @@ $('#J_send').on('click', function(){
   setTimeout(function(){
     $.get('/test', (data) => {
       for(var i=0; i<data.length; i++){
-        $('p').append(`<span>${data[i].text}，</span>`)
+        $('.J_emails').append(`<span>${data[i].text}，</span>`)
       }
-      $('p').append('<br>');
+      $('.J_emails').append('<br>');
     })
   },200);
 });
@@ -56,6 +56,7 @@ $('#J_reg').on('click', function(){
   })
 })
 
+//个人信息效果
 var _move = true;
 $('#user_info_btn').on('click',function(){
   $('#user_info')[ (_move ? 'add' : 'remove') + 'Class']('move');
@@ -63,6 +64,7 @@ $('#user_info_btn').on('click',function(){
   _move = !_move;
 })
 
+//弹窗修改弹窗
 $('#show_user_edit').on('click', function(){
   $('#user_edit_box').addClass('show');
   setTimeout(function(){
@@ -71,7 +73,23 @@ $('#show_user_edit').on('click', function(){
 })
 
 $('#ue_save').on('click', function(){
-  alert('还没弄好了')
+  var loginname = $('#ue_name').val();
+
+  $.post('/edit_user', {
+    loginname: loginname
+  }, function(data){
+    if(data.rt){
+      $('#user_edit_box').removeClass('show');
+      setTimeout(function(){
+        $('#user_info').show();
+      },1000)
+
+      $("#user_info .J_username").html(data.user.loginname)
+    }
+    else{
+      alert(data.err);
+    }
+  })
 })
 
 

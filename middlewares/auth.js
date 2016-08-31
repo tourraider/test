@@ -4,6 +4,14 @@ var eventproxy = require('eventproxy');
 var UserProxy = require('../proxy').User;
 
 
+exports.userRequired = function(req, res, next){
+  if(!req.session || !req.session.user || !req.session.user._id){
+    return res.status(403).send('forbidden');
+  }
+
+  next();
+}
+
 exports.gen_session = function(user, res) {
   var auth_token = user._id + '$$$$'; // 以后可能会存储更多信息，用 $$$$ 来分隔
   var opts = {
