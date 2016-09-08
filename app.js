@@ -7,6 +7,7 @@ var compress = require('compression');
 var bodyParser = require('body-parser');
 
 var config = require('./config');
+var auth = require('./middlewares/auth')
 var errorhandler = require('errorhandler');
 
 var Router = require('./router');
@@ -33,6 +34,8 @@ app.use(session({
   saveUninitialized: false,
 }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(auth.checkUserLogin)
 
 app.use('/', Router);
 

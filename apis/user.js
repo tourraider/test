@@ -1,13 +1,58 @@
 var config = require('../config');
 var User = require('../proxy').User;
-var ep = require('eventproxy');
+var eventproxy = require('eventproxy');
+var validator = require('validator');
+var mail = require('../common/mail');
+var authMiddleWare = require('../middlewares/auth');
+var tools = require('../common/tools');
+var utility = require('utility');
+
+exports.editUser = function(req, res, next){
+  var loginname = validator.trim(req.body.loginname).toLowerCase();
+
+  var user = req.session.user;
+  User.getUserById(user._id, function(err, user){
+    if(err){
+      return next(err);
+    }
+
+    if(!user){
+      return res.send({rt:0, err: '用户不存在'});
+    }
+
+    user.loginname = loginname;
+    user.save(function(err){
+      if(err){
+        return next(err);
+      }
+
+      req.session.user = res.locals.current_user = user;
+      res.send({rt:1, user: user});
+    })
+  })
+
+}
 
 exports.login = function(req, res, next){
-  var userId = req.body.userId;
-  var password = req.body.password;
+  var userId = validator.trim(req.body.userId);
+  var password = validator.trim(req.body.password);
+
+  var ep = new eventproxy();
+  ep.fail(next)
+
+  ep.on('props_err', function(errMsg){
+    return res.send({rt: 0, err: errMsg });
+  })
+
+  if(userId === '' || password === ''){
+    return ep.emit('props_err', '用户名密码不能为空');
+  }
+
+  if(!tools.validateId){
+    return ep.emit('props_err', '用户名不合法');
+  }
 
   var getUser;
-
   if(userId.indexOf('@') != -1){
     getUser = User.getUserByEmail;
   }
@@ -16,28 +61,53 @@ exports.login = function(req, res, next){
   }
 
   getUser(userId, function(err, user){
-    console.log(userId, user)
     if(!user){
-      res.send({rt:0, err: '用户名或密码错误'})
+      return res.send({rt:0, err: '用户名或密码错误'})
     }
 
-    if(user.password === password){
-      res.send({rt:1, msg:'登录成功'});
+    if(!user.active){
+      return ep.emit('props_err', '用户未激活');
     }
-    else{
-      res.send({rt:0, err: '用户名或密码错误'});
-    }
+
+    tools.bcompare(password, user.password, ep.done(function(bool){
+      if(bool){
+        authMiddleWare.gen_session(user, res);
+        res.send({rt:1, msg: '登录成功'})
+      }
+      else{
+        ep.emit('props_err', '用户名密码错误');
+      }
+    }))
   })
+
 }
 
 exports.reg = function(req, res, next){
-  var loginname = req.body.loginname;
-  var password = req.body.password;
-  var repassword = req.body.repassword;
-  var email = req.body.email;
+  var loginname = validator.trim(req.body.loginname).toLowerCase();
+  var email = validator.trim(req.body.email).toLowerCase();
+  var password = validator.trim(req.body.password);
+  var repassword = validator.trim(req.body.repassword);
 
-  if(password != repassword){
-    res.send({rt:0, msg:'两次密码不相同'})
+  var ep = new eventproxy();
+  ep.fail(next);
+  ep.on('props_err', function(errMsg){
+    return res.send({rt: 0, err: errMsg})
+  })
+
+  if([loginname, email, password, repassword].some( item => item === '')){
+    return ep.emit('props_err', '信息不完整');
+  }
+
+  if(!validator.isEmail(email)){
+    return ep.emit('props_err', '邮箱不合法');
+  }
+
+  if(!tools.validateId(loginname)){
+    return ep.emit('props_err', '用户名不合法');
+  }
+
+  if(password !== repassword){
+    return ep.emit('props_err', '两次密码不相同');
   }
 
   User.getUserByQuery({'$or':[
@@ -45,20 +115,61 @@ exports.reg = function(req, res, next){
     {email: email}
   ]},{}, function(err, users){
     if(err){
-      res.send(500);
+      return next(err);
     }
 
     if(users.length > 0){
-      return res.send({rt:0, err: '用户名或邮箱已被注册'});
+      return ep.emit('props_err', '用户名或邮箱已被注册');
     }
 
-    User.addUser(loginname, password, email, true, function(err){
-      if(err){
-        return res.send({rt:0, err: '注册失败'});
-      }
+    tools.bhash(password, ep.done(function(hashpwd){
+      User.addUser(loginname, hashpwd, email, false, function(err){
+        if(err){
+          return next(err);
+        }
 
-      res.send({rt:1, msg:'注册成功'});
-
-    })
+        mail.sendActiveMail(email, utility.md5(email + hashpwd + config.session_secret), loginname);
+        res.send({rt:1, msg:'注册成功'});
+      })
+    }))
   })
 }
+
+
+exports.activeAccount = function(req, res, next){
+  var key = req.query.key;
+  var name = req.query.name;
+
+  User.getUserByName(name, function(err, user){
+    if(err){
+      return next(err);
+    }
+
+    if(!user){
+      return res.render('notify', {error: '用户不存在，激活失败'});
+    }
+
+    if( utility.md5(user.email + user.password + config.session_secret) !== key){
+      return res.render('notify', {error: '激活码错误，激活失败'});
+    }
+
+    user.active = true;
+    user.save(function(err){
+      if(err){
+        return next(err);
+      }
+      return res.render('notify', {success: '激活成功，请重新登录'});
+    });
+  })
+
+}
+
+
+
+
+
+
+
+
+
+

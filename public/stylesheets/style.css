@@ -5,3 +5,65 @@ body {
 a {
   color: #00B7FF;
 }
+
+#user_info{
+  position: absolute;
+  right: 0;
+  top: 0;
+  border: 1px solid #666;
+  padding: 10px;
+  background: #fff;
+  -webkit-transition:1s all ease;
+  -webkit-transform:  translate(0, 0) scale(1) rotate(0);
+}
+
+#user_info.move{
+  right: 50%;top: 50%;
+  -webkit-transform: translate(50%, -50%) scale(2) rotate(720deg) ;
+}
+
+#user_info img{
+  width: 60px;height: 60px;display: block;
+}
+
+#user_edit_box{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid #666;
+  padding: 10px;
+  background: #fff;
+  opacity: 0;
+  -webkit-transition:1s all ease;
+  -webkit-transform:  translate(500%, -50%);
+}
+
+#user_edit_box.show{
+  opacity: 1;
+  -webkit-transform:  translate(-50%, -50%);
+}
+
+#user_edit_box input, #user_edit_box button{
+  margin: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

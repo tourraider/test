@@ -1,6 +1,6 @@
 var nodemailer = require('nodemailer');
 var config = require('../config');
-var SITE_ROOT_URL = 'http://' + config.debug ? config.dev_host : config.hostname;
+var SITE_ROOT_URL = `http:\/\/${config.debug ? config.dev_host : config.hostname}:${config.port}`;
 
 var transporter = nodemailer.createTransport(`smtp:\/\/${config.mail_form}:${config.mail_pass}@smtp.qq.com`);
 var from = `${config.siteName} <${config.mail_form}>`;
@@ -27,7 +27,7 @@ exports.sendActiveMail = function(to, token, name){
   var subject = '账户激活';
   var html = `
     <p>您好：</p>
-      请点击下面的链接来激活帐户：</p>
+      <p>请点击下面的链接来激活帐户：</p>
       <a href="${SITE_ROOT_URL}/active_account?key=${token}&name=${name}">激活链接</a>`;
 
   _toSendMail({

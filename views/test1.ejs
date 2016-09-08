@@ -5,9 +5,28 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
-    <input id="J_mail" type="text" value="18668199756@163.com"/>
-    <button id="J_send">发送</button>
-    <p></p>
+
+    <% if(current_user) {%>
+      <div id="user_info">
+        <img src="<%= current_user.head%>">
+        <p>用户名：<span class="J_username"><%= current_user.loginname%></span></p>
+        <p>邮箱：<%= current_user.email%></p>
+        <button id="user_info_btn">居中</button>
+        <button id="show_user_edit">编辑</button>
+      </div>
+
+      <div id="user_edit_box">
+        <input type="text" id="ue_name" value="<%= current_user.loginname%>" /><br/>
+        <input type="text" id="ue_email" value="<%= current_user.email%>" readOnly/><br/>
+        <button id="ue_save">保存</button>
+      </div>
+    <%}%>
+
+
+    <input id="J_mail" type="text" placeholder="邮箱地址"/>
+    <button id="J_send">打个招呼</button>
+    <button id="J_sendActive" style="display:none">发送激活邮件</button>
+    <p class="J_emails"></p>
 
     <hr>
 
@@ -17,7 +36,6 @@
       <input type="password" id="password2" placeholder="重复密码" value="22"/>
       <input type="text" id="email" placeholder="邮箱" value="18668199756@163.com"/>
       <button id="J_reg">注册</button>
-
       <span style="margin-left:10px"></span>
     </div>
 
